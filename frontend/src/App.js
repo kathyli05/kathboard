@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import RichNotes from "./RichNotes";
 
 const API_URL = "http://localhost:5000/api";
 
 const CORE_FIELDS = [
-  { key: "birthday", label: "Birthday", type: "date" },
-  { key: "hometown", label: "Hometown", type: "text" },
-  { key: "ethnicity", label: "Ethnicity", type: "text" },
-  { key: "university", label: "University", type: "text" },
-  { key: "concentration", label: "Concentration", type: "text" },
+  { key: "birthday", label: "birthday", type: "date" },
+  { key: "hometown", label: "hometown", type: "text" },
+  { key: "ethnicity", label: "ethnicity", type: "text" },
+  { key: "university", label: "university", type: "text" },
+  { key: "concentration", label: "concentration", type: "text" },
 ];
 
 const RELATIONSHIP_OPTIONS = [
@@ -32,14 +33,24 @@ function App() {
   const [relationshipContext, setRelationshipContext] = useState("");
   const [hidden, setHidden] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
+  const [query, setQuery] = useState("");
+  const [notesDirty, setNotesDirty] = useState(false);
 
   useEffect(() => {
-    fetchFriends();
     fetchAttributeKeys();
   }, []);
 
-  const fetchFriends = async () => {
-    const response = await fetch(`${API_URL}/friends`);
+  useEffect(() => {
+    fetchFriends(query);
+  }, [query, showHidden]);
+
+  const fetchFriends = async (q = "") => {
+    const params = new URLSearchParams();
+    if (q.trim()) params.set("q", q.trim());
+    params.set("include_hidden", showHidden ? "true" : "false");
+
+    const url = `${API_URL}/friends?${params.toString()}`;
+    const response = await fetch(url);
     const data = await response.json();
     setFriends(data);
   };
@@ -68,7 +79,7 @@ function App() {
       body: JSON.stringify({ name: newFriendName }),
     });
     setNewFriendName("");
-    fetchFriends();
+    fetchFriends(query);
   };
 
   const addAttribute = async (e) => {
@@ -117,7 +128,23 @@ function App() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ notes: value }),
     });
+
+    setFriends((prev) =>
+      prev.map((f) => (f.id === selectedFriend.id ? { ...f, notes: value } : f))
+    );
+    setSelectedFriend((prev) => (prev ? { ...prev, notes: value } : prev));
   };
+
+  useEffect(() => {
+    if (!selectedFriend || !notesDirty) return;
+
+    const timeout = setTimeout(() => {
+      updateNotes(notes);
+      setNotesDirty(false);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [notes, notesDirty, selectedFriend?.id]);
 
   const updateRelationshipContext = async (value) => {
     if (!selectedFriend) return;
@@ -166,14 +193,13 @@ function App() {
       concentration: friend.concentration || "",
     });
     setNotes(friend.notes || "");
+    setNotesDirty(false);
     setRelationshipContext(friend.relationship_context || "");
     setHidden(friend.hidden || false);
     fetchAttributes(friend.id);
   };
 
-  const visibleFriends = showHidden
-    ? friends
-    : friends.filter((f) => !f.hidden);
+  const visibleFriends = friends;
 
   const hiddenCount = friends.filter((f) => f.hidden).length;
 
@@ -182,16 +208,14 @@ function App() {
       <div className="container">
         <div className="sidebar">
           <h2>Friends</h2>
-          <form onSubmit={addFriend} className="add-friend-form">
-            <input
-              type="text"
-              placeholder="Friend's name"
-              value={newFriendName}
-              onChange={(e) => setNewFriendName(e.target.value)}
-              required
-            />
-            <button type="submit">Add Friend</button>
-          </form>
+
+          <input
+            type="text"
+            className="friend-search"
+            placeholder="search friends…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
 
           {hiddenCount > 0 && (
             <label className="show-hidden-toggle">
@@ -226,6 +250,17 @@ function App() {
               </div>
             ))}
           </div>
+
+          <form onSubmit={addFriend} className="add-friend-form">
+            <input
+              type="text"
+              placeholder="friend's name"
+              value={newFriendName}
+              onChange={(e) => setNewFriendName(e.target.value)}
+              required
+            />
+            <button type="submit">add friend</button>
+          </form>
         </div>
 
         <div className="main-content">
@@ -301,10 +336,10 @@ function App() {
                 </div>
 
                 <form onSubmit={addAttribute} className="add-attribute-form">
-                  <h3>Add New Detail</h3>
+                  <h3>add new detail</h3>
                   <input
                     type="text"
-                    placeholder="Detail name (e.g., favorite color)"
+                    placeholder="attribute name (e.g., favorite color)"
                     value={newAttributeKey}
                     onChange={(e) => setNewAttributeKey(e.target.value)}
                     required
@@ -316,17 +351,18 @@ function App() {
                     onChange={(e) => setNewAttributeValue(e.target.value)}
                     required
                   />
-                  <button type="submit">Add Detail</button>
+                  <button type="submit">add attribute</button>
                 </form>
 
                 <div className="notes-section">
                   <h3>Notes</h3>
-                  <textarea
+                  <RichNotes
                     value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    onBlur={(e) => updateNotes(e.target.value)}
+                    onChange={(html) => {
+                      setNotes(html);
+                      setNotesDirty(true);
+                    }}
                     placeholder="Anything else you want to remember about this person..."
-                    rows={5}
                   />
                 </div>
               </div>

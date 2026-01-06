@@ -5,9 +5,13 @@ backend/__pycache__/
 backend/*.pyc
 backend/*.db
 backend/.env
+backend/package-lock.json
+backend/package.json
 frontend/node_modules/
 frontend/build/
 frontend/.env
+frontend\package-lock.json
+frontend\package.json
 frontend/.env.local
 
 # dependencies

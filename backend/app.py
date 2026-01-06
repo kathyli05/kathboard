@@ -3,7 +3,7 @@ from flask_cors import CORS
 from database import (
     init_db, get_all_friends, create_friend,
     get_friend_attributes, set_friend_attribute,
-    get_all_attribute_keys, update_friend_fields
+    get_all_attribute_keys, update_friend_fields, search_friends_by_name,
 )
 
 app = Flask(__name__)
@@ -13,7 +13,16 @@ init_db()
 
 @app.route('/api/friends', methods=['GET'])
 def get_friends():
+    q = request.args.get('q', default="", type=str)
+    include_hidden = request.args.get('include_hidden', default="false", type=str).lower() == "true"
+
+    if q.strip():
+        friends = search_friends_by_name(q, include_hidden=include_hidden)
+        return jsonify(friends)
+
     friends = get_all_friends()
+    if not include_hidden:
+        friends = [f for f in friends if not f.get("hidden", False)]
     return jsonify(friends)
 
 @app.route('/api/friends', methods=['POST'])

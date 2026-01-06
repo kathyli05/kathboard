@@ -53,6 +53,42 @@ def get_all_friends():
         result.append(friend_dict)
     return result
 
+def search_friends_by_name(q: str = "", include_hidden: bool = False):
+    conn = get_db()
+
+    term = (q or "").strip()
+    like = f"%{term}%"
+
+    if include_hidden:
+        rows = conn.execute(
+            """
+            SELECT * FROM friends
+            WHERE name LIKE ?
+            ORDER BY created_at DESC
+            """,
+            (like,),
+        ).fetchall()
+    else:
+        # hidden stored as 'true'/'false' text, and read back as bool in get_all_friends :contentReference[oaicite:2]{index=2}
+        rows = conn.execute(
+            """
+            SELECT * FROM friends
+            WHERE name LIKE ?
+              AND (hidden IS NULL OR hidden != 'true')
+            ORDER BY created_at DESC
+            """,
+            (like,),
+        ).fetchall()
+
+    conn.close()
+
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["hidden"] = d.get("hidden") == "true"
+        result.append(d)
+    return result
+
 def create_friend(name):
     conn = get_db()
     cursor = conn.cursor()
