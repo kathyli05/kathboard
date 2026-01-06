@@ -61,6 +61,39 @@ body {
   font-weight: 500;
 }
 
+/* Mobile menu toggle */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mobile-menu-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Mobile overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
 .add-friend-form {
   display: flex;
   flex-direction: column;
@@ -75,7 +108,7 @@ body {
   padding: 12px 16px;
   color: #e4e4e7;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px; /* Prevents iOS zoom */
   transition: all 0.2s ease;
 }
 
@@ -93,13 +126,14 @@ body {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.6);
-  padding: 12px 16px;
+  padding: 14px 16px;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 48px; /* Touch-friendly */
 }
 
 .add-friend-form button:hover {
@@ -113,15 +147,18 @@ body {
   align-items: center;
   gap: 10px;
   padding: 12px 0;
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.35);
   cursor: pointer;
   margin-bottom: 16px;
+  min-height: 44px; /* Touch-friendly */
 }
 
 .show-hidden-toggle input {
   accent-color: #8b5cf6;
   cursor: pointer;
+  width: 18px;
+  height: 18px;
 }
 
 .friends-list {
@@ -130,21 +167,27 @@ body {
   gap: 4px;
   overflow-y: auto;
   flex: 1;
+  -webkit-overflow-scrolling: touch;
 }
 
 .friend-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
+  padding: 16px;
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.15s ease;
   border: 1px solid transparent;
+  min-height: 52px; /* Touch-friendly */
 }
 
 .friend-item:hover {
   background: rgba(255, 255, 255, 0.03);
+}
+
+.friend-item:active {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .friend-item.selected {
@@ -175,24 +218,16 @@ body {
 .friend-search {
   width: 100%;
   margin-bottom: 18px;
-
-  padding: 12px 16px;
+  padding: 14px 16px;
   border-radius: 12px;
-
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   color: rgba(255, 255, 255, 0.85);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 16px; /* Prevents iOS zoom */
   letter-spacing: 0.2px;
-
-  transition: 
-    background 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
-
 
 .friend-search::placeholder {
   color: rgba(255, 255, 255, 0.25);
@@ -206,9 +241,7 @@ body {
   outline: none;
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(139, 92, 246, 0.45);
-
-  box-shadow:
-    0 0 0 3px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 /* Main Content */
@@ -216,13 +249,12 @@ body {
   flex: 1;
   padding: 0px 64px;
   position: relative;
-  overscroll-behavior: contain; /* stops scroll chaining */
-
-  overflow-y: auto; /* 👈 scroll happens here */
-  height: 100%; /* ensures it uses the container height */
+  overscroll-behavior: contain;
+  overflow-y: auto;
+  height: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Decorative stars */
 .main-content::before {
   content: "✦";
   position: absolute;
@@ -237,6 +269,8 @@ body {
   align-items: center;
   justify-content: center;
   height: 60vh;
+  padding: 24px;
+  text-align: center;
 }
 
 .empty-state p {
@@ -250,20 +284,14 @@ body {
   position: sticky;
   top: 0;
   z-index: 50;
-
-  /* layout: name + button on one line */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-
-  /* extend the sticky bar across the padded area */
-  margin: 0px -64px 0px -64px;  /* cancels top + sides padding */
-  padding: 40px 64px 40px 64px;    /* re-add comfortable spacing inside bar */
-
+  margin: 0px -64px 0px -64px;
+  padding: 40px 64px 40px 64px;
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
-
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
@@ -281,16 +309,18 @@ body {
 }
 
 .hide-toggle {
-  padding: 10px 20px;
+  padding: 12px 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   background: transparent;
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.5px;
   color: rgba(255, 255, 255, 0.4);
   transition: all 0.2s ease;
+  min-height: 44px; /* Touch-friendly */
+  white-space: nowrap;
 }
 
 .hide-toggle:hover {
@@ -310,6 +340,7 @@ body {
   align-items: center;
   gap: 16px;
   margin-bottom: 40px;
+  flex-wrap: wrap;
 }
 
 .relationship-section label {
@@ -323,12 +354,13 @@ body {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  padding: 10px 16px;
+  padding: 12px 16px;
   color: #e4e4e7;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px; /* Prevents iOS zoom */
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 48px; /* Touch-friendly */
 }
 
 .relationship-section select:focus {
@@ -391,11 +423,12 @@ body {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 14px 16px;
   color: #e4e4e7;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px; /* Prevents iOS zoom */
   transition: all 0.2s ease;
+  min-height: 48px; /* Touch-friendly */
 }
 
 .attribute-row input::placeholder {
@@ -431,12 +464,13 @@ body {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 14px 16px;
   color: #e4e4e7;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px; /* Prevents iOS zoom */
   margin-bottom: 12px;
   transition: all 0.2s ease;
+  min-height: 48px; /* Touch-friendly */
 }
 
 .add-attribute-form input::placeholder {
@@ -452,14 +486,15 @@ body {
   background: transparent;
   border: 1px solid rgba(139, 92, 246, 0.3);
   color: rgba(139, 92, 246, 0.8);
-  padding: 12px 24px;
+  padding: 14px 24px;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 8px;
+  min-height: 48px; /* Touch-friendly */
 }
 
 .add-attribute-form button:hover {
@@ -508,7 +543,7 @@ body {
   padding: 16px;
   color: #e4e4e7;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px; /* Prevents iOS zoom */
   line-height: 1.7;
   resize: vertical;
   min-height: 120px;
@@ -534,72 +569,41 @@ body {
 
 .notes-toolbar {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   padding: 10px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.02);
+  flex-wrap: wrap;
 }
 
-.notes-toolbar button {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  color: rgba(255, 255, 255, 0.65);
-  padding: 8px 10px;
-  border-radius: 10px;
-  font-family: inherit;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.notes-toolbar button:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.18);
-}
-
-.notes-toolbar button.active {
-  background: rgba(139, 92, 246, 0.14);
-  border-color: rgba(139, 92, 246, 0.35);
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.notes-editor-shell {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.notes-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
-}
-
+.notes-toolbar button,
 .notes-btn {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.10);
   color: rgba(255, 255, 255, 0.65);
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 10px;
   font-family: inherit;
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  min-height: 40px; /* Touch-friendly */
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.notes-toolbar button:hover,
 .notes-btn:hover {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.8);
 }
 
+.notes-toolbar button.active,
 .notes-btn.active {
   background: rgba(139, 92, 246, 0.14);
   border-color: rgba(139, 92, 246, 0.35);
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .notes-divider {
@@ -607,21 +611,21 @@ body {
   height: 18px;
   background: rgba(255, 255, 255, 0.08);
   margin: 0 4px;
+  align-self: center;
 }
 
-/* Editor surface */
 .notes-editor {
   padding: 14px 14px;
   min-height: 140px;
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.7;
+  font-size: 16px; /* Prevents iOS zoom */
 }
 
 .notes-editor:focus {
   outline: none;
 }
 
-/* Heading / subheading */
 .notes-editor h2 {
   margin: 10px 0 6px;
   font-size: 18px;
@@ -636,14 +640,12 @@ body {
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* Lists spacing */
 .notes-editor ul,
 .notes-editor ol {
   margin: 8px 0;
   padding-left: 22px;
 }
 
-/* ✅ "Dashed list" look: style bulletList as dash-prefixed items */
 .notes-editor ul {
   list-style: none;
   padding-left: 0;
@@ -679,4 +681,172 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.15);
+}
+
+/* ========== MOBILE STYLES ========== */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  /* Mobile menu toggle visible */
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Sidebar becomes a slide-up panel */
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 85vh;
+    max-height: 85vh;
+    border-right: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px 24px 0 0;
+    padding: 20px 20px 100px 20px;
+    z-index: 200;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(17, 17, 27, 0.98);
+  }
+
+  .sidebar.open {
+    transform: translateY(0);
+  }
+
+  .sidebar-overlay.visible {
+    display: block;
+  }
+
+  /* Drag handle indicator */
+  .sidebar::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+  }
+
+  .sidebar h2 {
+    margin-top: 16px;
+  }
+
+  /* Main content takes full width */
+  .main-content {
+    padding: 0 20px;
+    width: 100%;
+    padding-bottom: 100px; /* Space for FAB */
+  }
+
+  .main-content::before {
+    right: 20px;
+  }
+
+  /* Friend header adjustments */
+  .friend-header {
+    margin: 0 -20px;
+    padding: 24px 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .friend-header h1 {
+    font-size: 24px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Sections */
+  .core-info,
+  .add-attribute-form,
+  .notes-section {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  /* Attribute rows stack on mobile */
+  .attribute-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .attribute-row label {
+    min-width: unset;
+  }
+
+  /* Relationship section stacks */
+  .relationship-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .relationship-section select {
+    width: 100%;
+  }
+
+  /* Empty state */
+  .empty-state {
+    height: calc(100vh - 200px);
+  }
+
+  .empty-state p {
+    padding: 0 20px;
+  }
+
+  /* Notes toolbar scrolls horizontally */
+  .notes-toolbar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .notes-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 380px) {
+  .friend-header h1 {
+    font-size: 20px;
+  }
+
+  .hide-toggle {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  .core-info,
+  .add-attribute-form,
+  .notes-section {
+    padding: 16px;
+  }
+}
+
+/* Safe area for notched phones */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .sidebar {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-menu-toggle {
+    bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .main-content {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+  }
 }

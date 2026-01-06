@@ -35,6 +35,7 @@ function App() {
   const [showHidden, setShowHidden] = useState(false);
   const [query, setQuery] = useState("");
   const [notesDirty, setNotesDirty] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchAttributeKeys();
@@ -44,11 +45,28 @@ function App() {
     fetchFriends(query);
   }, [query, showHidden]);
 
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape") setSidebarOpen(false);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
+
+  // Prevent body scroll when sidebar is open
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [sidebarOpen]);
+
   const fetchFriends = async (q = "") => {
     const params = new URLSearchParams();
     if (q.trim()) params.set("q", q.trim());
     params.set("include_hidden", showHidden ? "true" : "false");
-
     const url = `${API_URL}/friends?${params.toString()}`;
     const response = await fetch(url);
     const data = await response.json();
@@ -65,9 +83,7 @@ function App() {
     const response = await fetch(`${API_URL}/friends/${friendId}/attributes`);
     const data = await response.json();
     const attrObj = {};
-    data.forEach((attr) => {
-      attrObj[attr.key] = attr.value;
-    });
+    data.forEach((attr) => { attrObj[attr.key] = attr.value; });
     setAttributes(attrObj);
   };
 
@@ -85,13 +101,11 @@ function App() {
   const addAttribute = async (e) => {
     e.preventDefault();
     if (!selectedFriend) return;
-
     await fetch(`${API_URL}/friends/${selectedFriend.id}/attributes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key: newAttributeKey, value: newAttributeValue }),
     });
-
     setNewAttributeKey("");
     setNewAttributeValue("");
     fetchAttributes(selectedFriend.id);
@@ -100,19 +114,16 @@ function App() {
 
   const updateAttribute = async (key, value) => {
     if (!selectedFriend) return;
-
     await fetch(`${API_URL}/friends/${selectedFriend.id}/attributes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key, value }),
     });
-
     fetchAttributes(selectedFriend.id);
   };
 
   const updateCoreField = async (key, value) => {
     if (!selectedFriend) return;
-
     await fetch(`${API_URL}/friends/${selectedFriend.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -122,13 +133,11 @@ function App() {
 
   const updateNotes = async (value) => {
     if (!selectedFriend) return;
-
     await fetch(`${API_URL}/friends/${selectedFriend.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ notes: value }),
     });
-
     setFriends((prev) =>
       prev.map((f) => (f.id === selectedFriend.id ? { ...f, notes: value } : f))
     );
@@ -137,50 +146,38 @@ function App() {
 
   useEffect(() => {
     if (!selectedFriend || !notesDirty) return;
-
     const timeout = setTimeout(() => {
       updateNotes(notes);
       setNotesDirty(false);
     }, 500);
-
     return () => clearTimeout(timeout);
   }, [notes, notesDirty, selectedFriend?.id]);
 
   const updateRelationshipContext = async (value) => {
     if (!selectedFriend) return;
     setRelationshipContext(value);
-
     await fetch(`${API_URL}/friends/${selectedFriend.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ relationship_context: value }),
     });
-
-    // Update local friends list
-    setFriends(
-      friends.map((f) =>
-        f.id === selectedFriend.id ? { ...f, relationship_context: value } : f
-      )
-    );
+    setFriends(friends.map((f) =>
+      f.id === selectedFriend.id ? { ...f, relationship_context: value } : f
+    ));
   };
 
   const toggleHidden = async () => {
     if (!selectedFriend) return;
     const newHidden = !hidden;
     setHidden(newHidden);
-
     await fetch(`${API_URL}/friends/${selectedFriend.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ hidden: newHidden }),
     });
-
-    // Update local friends list
-    setFriends(
-      friends.map((f) =>
-        f.id === selectedFriend.id ? { ...f, hidden: newHidden } : f
-      )
-    );
+    setFriends(friends.map((f) =>
+      f.id === selectedFriend.id ? { ...f, hidden: newHidden } : f
+    ));
   };
 
   const selectFriend = (friend) => {
@@ -197,16 +194,22 @@ function App() {
     setRelationshipContext(friend.relationship_context || "");
     setHidden(friend.hidden || false);
     fetchAttributes(friend.id);
+    setSidebarOpen(false); // Close sidebar on mobile after selection
   };
-
-  const visibleFriends = friends;
 
   const hiddenCount = friends.filter((f) => f.hidden).length;
 
   return (
     <div className="App">
       <div className="container">
-        <div className="sidebar">
+        {/* Mobile overlay */}
+        <div
+          className={`sidebar-overlay ${sidebarOpen ? "visible" : ""}`}
+          onClick={() => setSidebarOpen(false)}
+        />
+
+        {/* Sidebar */}
+        <div className={`sidebar ${sidebarOpen ? "open" : ""}`}>
           <h2>Friends</h2>
 
           <input
@@ -229,7 +232,7 @@ function App() {
           )}
 
           <div className="friends-list">
-            {visibleFriends.map((friend) => (
+            {friends.map((friend) => (
               <div
                 key={friend.id}
                 className={`friend-item ${
@@ -240,11 +243,9 @@ function App() {
                 <span className="friend-name">{friend.name}</span>
                 {friend.relationship_context && (
                   <span className="friend-context">
-                    {
-                      RELATIONSHIP_OPTIONS.find(
-                        (o) => o.value === friend.relationship_context
-                      )?.label
-                    }
+                    {RELATIONSHIP_OPTIONS.find(
+                      (o) => o.value === friend.relationship_context
+                    )?.label}
                   </span>
                 )}
               </div>
@@ -263,6 +264,7 @@ function App() {
           </form>
         </div>
 
+        {/* Main Content */}
         <div className="main-content">
           {selectedFriend ? (
             <>
@@ -300,14 +302,9 @@ function App() {
                         type={field.type}
                         value={coreInfo[field.key] || ""}
                         onChange={(e) => {
-                          setCoreInfo({
-                            ...coreInfo,
-                            [field.key]: e.target.value,
-                          });
+                          setCoreInfo({ ...coreInfo, [field.key]: e.target.value });
                         }}
-                        onBlur={(e) =>
-                          updateCoreField(field.key, e.target.value)
-                        }
+                        onBlur={(e) => updateCoreField(field.key, e.target.value)}
                         placeholder={`add ${field.label.toLowerCase()}`}
                       />
                     </div>
@@ -323,10 +320,7 @@ function App() {
                         type="text"
                         value={attributes[key] || ""}
                         onChange={(e) => {
-                          setAttributes({
-                            ...attributes,
-                            [key]: e.target.value,
-                          });
+                          setAttributes({ ...attributes, [key]: e.target.value });
                         }}
                         onBlur={(e) => updateAttribute(key, e.target.value)}
                         placeholder={`Add ${key}`}
@@ -373,6 +367,15 @@ function App() {
             </div>
           )}
         </div>
+
+        {/* Mobile FAB */}
+        <button
+          className="mobile-menu-toggle"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label={sidebarOpen ? "Close menu" : "Open friends list"}
+        >
+          {sidebarOpen ? "✕" : "☰"}
+        </button>
       </div>
     </div>
   );
