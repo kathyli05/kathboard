@@ -1,158 +1,465 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap');
+
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
+body {
+  margin: 0;
+  padding: 0;
+  background: #0a0a0f;
+}
+
 .App {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  height: 100vh;
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  min-height: 100vh;
+  background: 
+    radial-gradient(ellipse at 20% 20%, rgba(88, 86, 214, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(17, 17, 27, 1) 0%, #0a0a0f 100%);
+  color: #e4e4e7;
 }
 
 .container {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
 }
 
+/* Sidebar */
 .sidebar {
-  width: 300px;
-  background: #f5f5f5;
-  padding: 20px;
-  border-right: 1px solid #ddd;
+  width: 280px;
+  background: rgba(255, 255, 255, 0.02);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(20px);
 }
 
 .sidebar h2 {
-  margin-bottom: 20px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 0 24px 0;
+  font-weight: 500;
 }
 
 .add-friend-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 32px;
 }
 
 .add-friend-form input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #e4e4e7;
+  font-family: inherit;
   font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.add-friend-form input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.add-friend-form input:focus {
+  outline: none;
+  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .add-friend-form button {
-  padding: 10px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.6);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  font-size: 14px;
+  transition: all 0.2s ease;
 }
 
 .add-friend-form button:hover {
-  background: #0056b3;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.show-hidden-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.show-hidden-toggle input {
+  accent-color: #8b5cf6;
+  cursor: pointer;
 }
 
 .friends-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .friend-item {
-  padding: 12px;
-  background: white;
-  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
   cursor: pointer;
-  transition: background 0.2s;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
 }
 
 .friend-item:hover {
-  background: #e9ecef;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .friend-item.selected {
-  background: #007bff;
-  color: white;
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.2);
 }
 
+.friend-item.hidden-friend {
+  opacity: 0.35;
+}
+
+.friend-name {
+  font-weight: 400;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.friend-context {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(139, 92, 246, 0.7);
+  background: rgba(139, 92, 246, 0.1);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* Main Content */
 .main-content {
   flex: 1;
-  padding: 40px;
-  overflow-y: auto;
+  padding: 48px 64px;
+  max-width: 720px;
+  position: relative;
 }
 
-.main-content h1 {
-  margin-bottom: 30px;
-}
-
-.attributes {
-  margin-bottom: 40px;
-}
-
-.attributes h3 {
-  margin-bottom: 15px;
-}
-
-.attribute-row {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
-.attribute-row label {
-  min-width: 150px;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.attribute-row input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.add-attribute-form {
-  border-top: 2px solid #eee;
-  padding-top: 30px;
-}
-
-.add-attribute-form h3 {
-  margin-bottom: 15px;
-}
-
-.add-attribute-form input {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.add-attribute-form button {
-  padding: 10px 20px;
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.add-attribute-form button:hover {
-  background: #218838;
+/* Decorative stars */
+.main-content::before {
+  content: '✦';
+  position: absolute;
+  top: 48px;
+  right: 64px;
+  font-size: 12px;
+  color: rgba(139, 92, 246, 0.3);
 }
 
 .empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  color: #999;
-  font-size: 18px;
+  height: 60vh;
+}
+
+.empty-state p {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+/* Friend Header */
+.friend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.friend-header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 300;
+  letter-spacing: -0.5px;
+  color: #fff;
+}
+
+.hide-toggle {
+  padding: 10px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+}
+
+.hide-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hide-toggle.is-hidden {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* Relationship Section */
+.relationship-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.relationship-section label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.relationship-section select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #e4e4e7;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.relationship-section select:focus {
+  outline: none;
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.relationship-section select option {
+  background: #1a1a24;
+}
+
+/* Core Info Section */
+.core-info {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 32px;
+}
+
+.core-info h3 {
+  margin: 0 0 24px 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 500;
+}
+
+/* Attributes Section */
+.attributes {
+  margin-bottom: 32px;
+}
+
+.attributes h3 {
+  margin: 0 0 24px 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 500;
+}
+
+.attribute-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.attribute-row label {
+  min-width: 120px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+}
+
+.attribute-row input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #e4e4e7;
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.attribute-row input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.attribute-row input:focus {
+  outline: none;
+  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Add Attribute Form */
+.add-attribute-form {
+  background: rgba(139, 92, 246, 0.03);
+  border: 1px dashed rgba(139, 92, 246, 0.15);
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 32px;
+}
+
+.add-attribute-form h3 {
+  margin: 0 0 20px 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(139, 92, 246, 0.6);
+  font-weight: 500;
+}
+
+.add-attribute-form input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #e4e4e7;
+  font-family: inherit;
+  font-size: 14px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.add-attribute-form input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.add-attribute-form input:focus {
+  outline: none;
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.add-attribute-form button {
+  background: transparent;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: rgba(139, 92, 246, 0.8);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.add-attribute-form button:hover {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+/* Notes Section */
+.notes-section {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(88, 86, 214, 0.03) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  border-radius: 16px;
+  padding: 28px;
+  margin-top: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.notes-section::before {
+  content: '☽';
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  font-size: 16px;
+  color: rgba(139, 92, 246, 0.2);
+}
+
+.notes-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(139, 92, 246, 0.6);
+  font-weight: 500;
+}
+
+.notes-section textarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 16px;
+  color: #e4e4e7;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.7;
+  resize: vertical;
+  min-height: 120px;
+  transition: all 0.2s ease;
+}
+
+.notes-section textarea::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.notes-section textarea:focus {
+  outline: none;
+  border-color: rgba(139, 92, 246, 0.3);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
 }

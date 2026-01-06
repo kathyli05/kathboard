@@ -20,6 +20,19 @@ def init_db():
             FOREIGN KEY (friend_id) REFERENCES friends(id)
         )
     ''')
+    
+    # Add core fields if they don't exist
+    c.execute("PRAGMA table_info(friends)")
+    columns = [col[1] for col in c.fetchall()]
+    
+    core_fields = [
+        'birthday', 'notes', 'ethnicity', 'university', 
+        'concentration', 'hometown', 'relationship_context', 'hidden'
+    ]
+    for field in core_fields:
+        if field not in columns:
+            c.execute(f'ALTER TABLE friends ADD COLUMN {field} TEXT')
+    
     conn.commit()
     conn.close()
 
@@ -32,7 +45,13 @@ def get_all_friends():
     conn = get_db()
     friends = conn.execute('SELECT * FROM friends').fetchall()
     conn.close()
-    return [dict(f) for f in friends]
+    result = []
+    for f in friends:
+        friend_dict = dict(f)
+        # Convert hidden from string to boolean
+        friend_dict['hidden'] = friend_dict.get('hidden') == 'true'
+        result.append(friend_dict)
+    return result
 
 def create_friend(name):
     conn = get_db()
@@ -54,20 +73,17 @@ def get_friend_attributes(friend_id):
 
 def set_friend_attribute(friend_id, key, value):
     conn = get_db()
-    # Check if attribute exists
     existing = conn.execute(
         'SELECT id FROM attributes WHERE friend_id = ? AND key = ?',
         (friend_id, key)
     ).fetchone()
     
     if existing:
-        # Update
         conn.execute(
             'UPDATE attributes SET value = ? WHERE friend_id = ? AND key = ?',
             (value, friend_id, key)
         )
     else:
-        # Insert
         conn.execute(
             'INSERT INTO attributes (friend_id, key, value) VALUES (?, ?, ?)',
             (friend_id, key, value)
@@ -80,3 +96,18 @@ def get_all_attribute_keys():
     keys = conn.execute('SELECT DISTINCT key FROM attributes').fetchall()
     conn.close()
     return [k['key'] for k in keys]
+
+def update_friend_fields(friend_id, fields):
+    allowed = {
+        'birthday', 'notes', 'ethnicity', 'university', 
+        'concentration', 'hometown', 'relationship_context', 'hidden'
+    }
+    conn = get_db()
+    for key, value in fields.items():
+        if key in allowed:
+            # Convert boolean to string for hidden field
+            if key == 'hidden':
+                value = 'true' if value else 'false'
+            conn.execute(f'UPDATE friends SET {key} = ? WHERE id = ?', (value, friend_id))
+    conn.commit()
+    conn.close()

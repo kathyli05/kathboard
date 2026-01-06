@@ -3,13 +3,12 @@ from flask_cors import CORS
 from database import (
     init_db, get_all_friends, create_friend,
     get_friend_attributes, set_friend_attribute,
-    get_all_attribute_keys
+    get_all_attribute_keys, update_friend_fields
 )
 
 app = Flask(__name__)
 CORS(app)
 
-# Initialize database
 init_db()
 
 @app.route('/api/friends', methods=['GET'])
@@ -22,6 +21,12 @@ def add_friend():
     data = request.json
     friend_id = create_friend(data['name'])
     return jsonify({'id': friend_id}), 201
+
+@app.route('/api/friends/<int:friend_id>', methods=['PUT'])
+def update_friend(friend_id):
+    data = request.json
+    update_friend_fields(friend_id, data)
+    return jsonify({'success': True})
 
 @app.route('/api/friends/<int:friend_id>/attributes', methods=['GET'])
 def get_attributes(friend_id):
