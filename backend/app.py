@@ -10,7 +10,7 @@ from database import (
 )
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": ["https://friendtracker-gold.vercel.app"]}})
+CORS(app)
 
 init_db()
 
