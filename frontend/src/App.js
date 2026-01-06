@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import RichNotes from "./RichNotes";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const CORE_FIELDS = [
   { key: "birthday", label: "birthday", type: "date" },
