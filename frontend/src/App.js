@@ -241,87 +241,94 @@ function App() {
                 </button>
               </div>
 
-              <div className="relationship-section">
-                <label>how i know them:</label>
-                <select
-                  value={relationshipContext}
-                  onChange={(e) => updateRelationshipContext(e.target.value)}
-                >
-                  {RELATIONSHIP_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
+              <div className="main-inner">
+                <div className="relationship-section">
+                  <label>how i know them:</label>
+                  <select
+                    value={relationshipContext}
+                    onChange={(e) => updateRelationshipContext(e.target.value)}
+                  >
+                    {RELATIONSHIP_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="core-info">
+                  <h3>Core Info</h3>
+                  {CORE_FIELDS.map((field) => (
+                    <div key={field.key} className="attribute-row">
+                      <label>{field.label}:</label>
+                      <input
+                        type={field.type}
+                        value={coreInfo[field.key] || ""}
+                        onChange={(e) => {
+                          setCoreInfo({
+                            ...coreInfo,
+                            [field.key]: e.target.value,
+                          });
+                        }}
+                        onBlur={(e) =>
+                          updateCoreField(field.key, e.target.value)
+                        }
+                        placeholder={`Add ${field.label.toLowerCase()}`}
+                      />
+                    </div>
                   ))}
-                </select>
-              </div>
+                </div>
 
-              <div className="core-info">
-                <h3>Core Info</h3>
-                {CORE_FIELDS.map((field) => (
-                  <div key={field.key} className="attribute-row">
-                    <label>{field.label}:</label>
-                    <input
-                      type={field.type}
-                      value={coreInfo[field.key] || ""}
-                      onChange={(e) => {
-                        setCoreInfo({
-                          ...coreInfo,
-                          [field.key]: e.target.value,
-                        });
-                      }}
-                      onBlur={(e) => updateCoreField(field.key, e.target.value)}
-                      placeholder={`Add ${field.label.toLowerCase()}`}
-                    />
-                  </div>
-                ))}
-              </div>
+                <div className="attributes">
+                  <h3>Other Details</h3>
+                  {allAttributeKeys.map((key) => (
+                    <div key={key} className="attribute-row">
+                      <label>{key}:</label>
+                      <input
+                        type="text"
+                        value={attributes[key] || ""}
+                        onChange={(e) => {
+                          setAttributes({
+                            ...attributes,
+                            [key]: e.target.value,
+                          });
+                        }}
+                        onBlur={(e) => updateAttribute(key, e.target.value)}
+                        placeholder={`Add ${key}`}
+                      />
+                    </div>
+                  ))}
+                </div>
 
-              <div className="attributes">
-                <h3>Other Details</h3>
-                {allAttributeKeys.map((key) => (
-                  <div key={key} className="attribute-row">
-                    <label>{key}:</label>
-                    <input
-                      type="text"
-                      value={attributes[key] || ""}
-                      onChange={(e) => {
-                        setAttributes({ ...attributes, [key]: e.target.value });
-                      }}
-                      onBlur={(e) => updateAttribute(key, e.target.value)}
-                      placeholder={`Add ${key}`}
-                    />
-                  </div>
-                ))}
-              </div>
+                <form onSubmit={addAttribute} className="add-attribute-form">
+                  <h3>Add New Detail</h3>
+                  <input
+                    type="text"
+                    placeholder="Detail name (e.g., favorite color)"
+                    value={newAttributeKey}
+                    onChange={(e) => setNewAttributeKey(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Value"
+                    value={newAttributeValue}
+                    onChange={(e) => setNewAttributeValue(e.target.value)}
+                    required
+                  />
+                  <button type="submit">Add Detail</button>
+                </form>
 
-              <form onSubmit={addAttribute} className="add-attribute-form">
-                <h3>Add New Detail</h3>
-                <input
-                  type="text"
-                  placeholder="Detail name (e.g., favorite color)"
-                  value={newAttributeKey}
-                  onChange={(e) => setNewAttributeKey(e.target.value)}
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Value"
-                  value={newAttributeValue}
-                  onChange={(e) => setNewAttributeValue(e.target.value)}
-                  required
-                />
-                <button type="submit">Add Detail</button>
-              </form>
-
-              <div className="notes-section">
-                <h3>Notes</h3>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  onBlur={(e) => updateNotes(e.target.value)}
-                  placeholder="Anything else you want to remember about this person..."
-                  rows={5}
-                />
+                <div className="notes-section">
+                  <h3>Notes</h3>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    onBlur={(e) => updateNotes(e.target.value)}
+                    placeholder="Anything else you want to remember about this person..."
+                    rows={5}
+                  />
+                </div>
               </div>
             </>
           ) : (

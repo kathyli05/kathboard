@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap");
 
 * {
   box-sizing: border-box;
@@ -10,29 +10,45 @@ body {
   background: #0a0a0f;
 }
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 .App {
-  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  font-family: "Space Grotesk", -apple-system, sans-serif;
   min-height: 100vh;
-  background: 
-    radial-gradient(ellipse at 20% 20%, rgba(88, 86, 214, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+  background: radial-gradient(
+      ellipse at 20% 20%,
+      rgba(88, 86, 214, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 80%,
+      rgba(139, 92, 246, 0.06) 0%,
+      transparent 50%
+    ),
     radial-gradient(ellipse at 50% 50%, rgba(17, 17, 27, 1) 0%, #0a0a0f 100%);
   color: #e4e4e7;
 }
 
 .container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* Sidebar */
 .sidebar {
   width: 280px;
+  height: 100%;
   background: rgba(255, 255, 255, 0.02);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   padding: 32px 20px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   backdrop-filter: blur(20px);
 }
 
@@ -159,14 +175,17 @@ body {
 /* Main Content */
 .main-content {
   flex: 1;
-  padding: 48px 64px;
-  max-width: 720px;
+  padding: 0px 64px;
   position: relative;
+  overscroll-behavior: contain; /* stops scroll chaining */
+
+  overflow-y: auto; /* 👈 scroll happens here */
+  height: 100%; /* ensures it uses the container height */
 }
 
 /* Decorative stars */
 .main-content::before {
-  content: '✦';
+  content: "✦";
   position: absolute;
   top: 48px;
   right: 64px;
@@ -189,12 +208,29 @@ body {
 
 /* Friend Header */
 .friend-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  /* layout: name + button on one line */
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 40px;
-  padding-bottom: 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 16px;
+
+  /* extend the sticky bar across the padded area */
+  margin: 0px -64px 0px -64px;  /* cancels top + sides padding */
+  padding: 40px 64px 40px 64px;    /* re-add comfortable spacing inside bar */
+
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.main-inner {
+  padding-top: 24px;
+  padding-bottom: 48px;
 }
 
 .friend-header h1 {
@@ -394,7 +430,11 @@ body {
 
 /* Notes Section */
 .notes-section {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(88, 86, 214, 0.03) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.05) 0%,
+    rgba(88, 86, 214, 0.03) 100%
+  );
   border: 1px solid rgba(139, 92, 246, 0.1);
   border-radius: 16px;
   padding: 28px;
@@ -404,7 +444,7 @@ body {
 }
 
 .notes-section::before {
-  content: '☽';
+  content: "☽";
   position: absolute;
   top: 24px;
   right: 28px;
