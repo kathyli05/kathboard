@@ -9,6 +9,7 @@ function App() {
   const [notes, setNotes] = useState([]);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+  const [editValues, setEditValues] = useState({});
 
   // Form states
   const [friendForm, setFriendForm] = useState({
@@ -37,78 +38,109 @@ function App() {
     if (selectedFriend) {
       fetchFriendDetails(selectedFriend.id);
       fetchNotes(selectedFriend.id);
+      setEditValues({});
     }
-  }, [selectedFriend]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFriend?.id]);
 
   const fetchFriends = async () => {
-    const response = await fetch(`${API_URL}/friends`);
-    const data = await response.json();
-    setFriends(data);
+    try {
+      const response = await fetch(`${API_URL}/friends`);
+      if (!response.ok) throw new Error("Failed to fetch friends");
+      const data = await response.json();
+      setFriends(data);
+    } catch (error) {
+      console.error("Error fetching friends:", error);
+    }
   };
 
   const fetchFriendDetails = async (friendId) => {
-    const response = await fetch(`${API_URL}/friends/${friendId}`);
-    const data = await response.json();
-    setSelectedFriend(data);
+    try {
+      const response = await fetch(`${API_URL}/friends/${friendId}`);
+      if (!response.ok) throw new Error("Failed to fetch friend details");
+      const data = await response.json();
+      setSelectedFriend(data);
+    } catch (error) {
+      console.error("Error fetching friend details:", error);
+    }
   };
 
   const fetchNotes = async (friendId) => {
-    const response = await fetch(`${API_URL}/friends/${friendId}/notes`);
-    const data = await response.json();
-    setNotes(data);
+    try {
+      const response = await fetch(`${API_URL}/friends/${friendId}/notes`);
+      if (!response.ok) throw new Error("Failed to fetch notes");
+      const data = await response.json();
+      setNotes(data);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+      setNotes([]);
+    }
   };
 
   const addFriend = async (e) => {
     e.preventDefault();
 
-    const friendData = {
-      name: friendForm.name,
-    };
+    try {
+      const friendData = {
+        name: friendForm.name,
+      };
 
-    // Add optional fields
-    if (friendForm.nickname) friendData.nickname = friendForm.nickname;
-    if (friendForm.birthday) friendData.birthday = friendForm.birthday;
-    if (friendForm.hometown) friendData.hometown = friendForm.hometown;
-    if (friendForm.current_city) friendData.current_city = friendForm.current_city;
-    if (friendForm.phone) friendData.phone = friendForm.phone;
-    if (friendForm.email) friendData.email = friendForm.email;
+      // Add optional fields
+      if (friendForm.nickname) friendData.nickname = friendForm.nickname;
+      if (friendForm.birthday) friendData.birthday = friendForm.birthday;
+      if (friendForm.hometown) friendData.hometown = friendForm.hometown;
+      if (friendForm.current_city) friendData.current_city = friendForm.current_city;
+      if (friendForm.phone) friendData.phone = friendForm.phone;
+      if (friendForm.email) friendData.email = friendForm.email;
 
-    // Parse languages (comma-separated)
-    if (friendForm.languages) {
-      friendData.languages = friendForm.languages.split(",").map(l => l.trim());
-    }
+      // Parse languages (comma-separated)
+      if (friendForm.languages) {
+        friendData.languages = friendForm.languages.split(",").map(l => l.trim());
+      }
 
-    // Parse social media (format: platform:handle, platform:handle)
-    if (friendForm.social_media) {
-      const socialMedia = {};
-      friendForm.social_media.split(",").forEach(item => {
-        const [platform, handle] = item.split(":").map(s => s.trim());
-        if (platform && handle) {
-          socialMedia[platform] = handle;
-        }
+      // Parse social media (format: platform:handle, platform:handle)
+      if (friendForm.social_media) {
+        const socialMedia = {};
+        friendForm.social_media.split(",").forEach(item => {
+          const [platform, handle] = item.split(":").map(s => s.trim());
+          if (platform && handle) {
+            socialMedia[platform] = handle;
+          }
+        });
+        friendData.social_media = socialMedia;
+      }
+
+      const response = await fetch(`${API_URL}/friends`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(friendData),
       });
-      friendData.social_media = socialMedia;
+
+      if (!response.ok) {
+        throw new Error("Failed to create friend");
+      }
+
+      setFriendForm({
+        name: "",
+        nickname: "",
+        birthday: "",
+        hometown: "",
+        current_city: "",
+        languages: "",
+        phone: "",
+        email: "",
+        social_media: "",
+      });
+      setShowAddFriendModal(false);
+      await fetchFriends();
+    } catch (error) {
+      console.error("Error adding friend:", error);
+      alert("Failed to add friend. Please try again.");
     }
+  };
 
-    await fetch(`${API_URL}/friends`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(friendData),
-    });
-
-    setFriendForm({
-      name: "",
-      nickname: "",
-      birthday: "",
-      hometown: "",
-      current_city: "",
-      languages: "",
-      phone: "",
-      email: "",
-      social_media: "",
-    });
-    setShowAddFriendModal(false);
-    fetchFriends();
+  const handleFieldChange = (field, value) => {
+    setEditValues({ ...editValues, [field]: value });
   };
 
   const updateFriend = async (field, value) => {
@@ -121,57 +153,114 @@ function App() {
       updateData.languages = value.split(",").map(l => l.trim());
     }
 
-    await fetch(`${API_URL}/friends/${selectedFriend.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updateData),
-    });
+    try {
+      await fetch(`${API_URL}/friends/${selectedFriend.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateData),
+      });
 
-    fetchFriendDetails(selectedFriend.id);
-    fetchFriends();
+      await fetchFriendDetails(selectedFriend.id);
+      await fetchFriends();
+    } catch (error) {
+      console.error("Error updating friend:", error);
+      alert("Failed to update friend information");
+    }
+  };
+
+  const handleFieldBlur = async (field) => {
+    const value = editValues[field];
+    if (value !== undefined) {
+      await updateFriend(field, value);
+      // Clear the edit value after successful update
+      const newEditValues = { ...editValues };
+      delete newEditValues[field];
+      setEditValues(newEditValues);
+    }
+  };
+
+  const getFieldValue = (field) => {
+    if (editValues[field] !== undefined) {
+      return editValues[field];
+    }
+    if (!selectedFriend) return "";
+
+    const value = selectedFriend[field];
+    if (field === "languages" && Array.isArray(value)) {
+      return value.join(", ");
+    }
+    return value || "";
   };
 
   const addNote = async (e) => {
     e.preventDefault();
     if (!selectedFriend) return;
 
-    const noteData = {
-      content: noteForm.content,
-      category: noteForm.category || null,
-      tags: noteForm.tags ? noteForm.tags.split(",").map(t => t.trim()) : [],
-    };
+    try {
+      const noteData = {
+        content: noteForm.content,
+        category: noteForm.category || null,
+        tags: noteForm.tags ? noteForm.tags.split(",").map(t => t.trim()) : [],
+      };
 
-    await fetch(`${API_URL}/friends/${selectedFriend.id}/notes`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(noteData),
-    });
+      const response = await fetch(`${API_URL}/friends/${selectedFriend.id}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(noteData),
+      });
 
-    setNoteForm({ content: "", category: "", tags: "" });
-    setShowAddNoteModal(false);
-    fetchNotes(selectedFriend.id);
+      if (!response.ok) {
+        throw new Error("Failed to create note");
+      }
+
+      setNoteForm({ content: "", category: "", tags: "" });
+      setShowAddNoteModal(false);
+      await fetchNotes(selectedFriend.id);
+    } catch (error) {
+      console.error("Error adding note:", error);
+      alert("Failed to add note. Please try again.");
+    }
   };
 
   const deleteNote = async (noteId) => {
     if (!window.confirm("Are you sure you want to delete this note?")) return;
 
-    await fetch(`${API_URL}/notes/${noteId}`, {
-      method: "DELETE",
-    });
+    try {
+      const response = await fetch(`${API_URL}/notes/${noteId}`, {
+        method: "DELETE",
+      });
 
-    fetchNotes(selectedFriend.id);
+      if (!response.ok) {
+        throw new Error("Failed to delete note");
+      }
+
+      await fetchNotes(selectedFriend.id);
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      alert("Failed to delete note. Please try again.");
+    }
   };
 
   const toggleFavorite = async () => {
     if (!selectedFriend) return;
-    const newValue = selectedFriend.is_favorite ? 0 : 1;
-    await updateFriend("is_favorite", newValue);
+    try {
+      const newValue = selectedFriend.is_favorite ? 0 : 1;
+      await updateFriend("is_favorite", newValue);
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      alert("Failed to update favorite status");
+    }
   };
 
   const updateLastContacted = async () => {
     if (!selectedFriend) return;
-    const now = new Date().toISOString();
-    await updateFriend("last_contacted", now);
+    try {
+      const now = new Date().toISOString();
+      await updateFriend("last_contacted", now);
+    } catch (error) {
+      console.error("Error updating last contacted:", error);
+      alert("Failed to update last contacted date");
+    }
   };
 
   const formatDate = (dateString) => {
@@ -244,16 +333,18 @@ function App() {
                     <label>Birthday</label>
                     <input
                       type="date"
-                      value={selectedFriend.birthday || ""}
-                      onChange={(e) => updateFriend("birthday", e.target.value)}
+                      value={getFieldValue("birthday")}
+                      onChange={(e) => handleFieldChange("birthday", e.target.value)}
+                      onBlur={() => handleFieldBlur("birthday")}
                     />
                   </div>
                   <div className="detail-item">
                     <label>Hometown</label>
                     <input
                       type="text"
-                      value={selectedFriend.hometown || ""}
-                      onChange={(e) => updateFriend("hometown", e.target.value)}
+                      value={getFieldValue("hometown")}
+                      onChange={(e) => handleFieldChange("hometown", e.target.value)}
+                      onBlur={() => handleFieldBlur("hometown")}
                       placeholder="Enter hometown"
                     />
                   </div>
@@ -261,8 +352,9 @@ function App() {
                     <label>Current City</label>
                     <input
                       type="text"
-                      value={selectedFriend.current_city || ""}
-                      onChange={(e) => updateFriend("current_city", e.target.value)}
+                      value={getFieldValue("current_city")}
+                      onChange={(e) => handleFieldChange("current_city", e.target.value)}
+                      onBlur={() => handleFieldBlur("current_city")}
                       placeholder="Enter current city"
                     />
                   </div>
@@ -270,10 +362,9 @@ function App() {
                     <label>Languages</label>
                     <input
                       type="text"
-                      value={Array.isArray(selectedFriend.languages)
-                        ? selectedFriend.languages.join(", ")
-                        : selectedFriend.languages || ""}
-                      onChange={(e) => updateFriend("languages", e.target.value)}
+                      value={getFieldValue("languages")}
+                      onChange={(e) => handleFieldChange("languages", e.target.value)}
+                      onBlur={() => handleFieldBlur("languages")}
                       placeholder="e.g., English, Spanish"
                     />
                   </div>
@@ -287,8 +378,9 @@ function App() {
                     <label>Phone</label>
                     <input
                       type="tel"
-                      value={selectedFriend.phone || ""}
-                      onChange={(e) => updateFriend("phone", e.target.value)}
+                      value={getFieldValue("phone")}
+                      onChange={(e) => handleFieldChange("phone", e.target.value)}
+                      onBlur={() => handleFieldBlur("phone")}
                       placeholder="Enter phone number"
                     />
                   </div>
@@ -296,8 +388,9 @@ function App() {
                     <label>Email</label>
                     <input
                       type="email"
-                      value={selectedFriend.email || ""}
-                      onChange={(e) => updateFriend("email", e.target.value)}
+                      value={getFieldValue("email")}
+                      onChange={(e) => handleFieldChange("email", e.target.value)}
+                      onBlur={() => handleFieldBlur("email")}
                       placeholder="Enter email"
                     />
                   </div>
