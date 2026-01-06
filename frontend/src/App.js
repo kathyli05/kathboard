@@ -308,7 +308,7 @@ function App() {
                         onBlur={(e) =>
                           updateCoreField(field.key, e.target.value)
                         }
-                        placeholder={`Add ${field.label.toLowerCase()}`}
+                        placeholder={`add ${field.label.toLowerCase()}`}
                       />
                     </div>
                   ))}
@@ -346,7 +346,7 @@ function App() {
                   />
                   <input
                     type="text"
-                    placeholder="Value"
+                    placeholder="value"
                     value={newAttributeValue}
                     onChange={(e) => setNewAttributeValue(e.target.value)}
                     required
@@ -362,14 +362,14 @@ function App() {
                       setNotes(html);
                       setNotesDirty(true);
                     }}
-                    placeholder="Anything else you want to remember about this person..."
+                    placeholder="anything else i want to remember..."
                   />
                 </div>
               </div>
             </>
           ) : (
             <div className="empty-state">
-              <p>Select a friend to view their details!</p>
+              <p>select a friend to view their details!</p>
             </div>
           )}
         </div>
