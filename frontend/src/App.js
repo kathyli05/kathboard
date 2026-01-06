@@ -260,7 +260,7 @@ function App() {
               onChange={(e) => setNewFriendName(e.target.value)}
               required
             />
-            <button type="submit">add friend</button>
+            <button type="submit">add new friend :D</button>
           </form>
         </div>
 
