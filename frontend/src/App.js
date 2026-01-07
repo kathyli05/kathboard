@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import RichNotes from "./RichNotes";
+import PinGate from "./PinGate";
+
+console.log("APP VERSION: PIN-GATE FIXED", new Date().toISOString());
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -20,6 +23,24 @@ const RELATIONSHIP_OPTIONS = [
   { value: "other", label: "other" },
 ];
 
+async function authedFetch(url, options = {}) {
+  const pin = sessionStorage.getItem("FT_PIN") || "";
+  const headers = {
+    ...(options.headers || {}),
+    "X-FriendTracker-Pin": pin,
+  };
+
+  const res = await fetch(url, { ...options, headers });
+
+  if (res.status === 401) {
+    sessionStorage.removeItem("FT_PIN");
+    // force a refresh so PinGate shows again
+    window.location.reload();
+  }
+
+  return res;
+}
+
 function App() {
   const [friends, setFriends] = useState([]);
   const [selectedFriend, setSelectedFriend] = useState(null);
@@ -36,14 +57,17 @@ function App() {
   const [query, setQuery] = useState("");
   const [notesDirty, setNotesDirty] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unlocked, setUnlocked] = useState(!!sessionStorage.getItem("FT_PIN"));
 
   useEffect(() => {
+    if (!unlocked) return;
     fetchAttributeKeys();
-  }, []);
+  }, [unlocked]);
 
   useEffect(() => {
+    if (!unlocked) return;
     fetchFriends(query);
-  }, [query, showHidden]);
+  }, [unlocked, query, showHidden]);
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -60,7 +84,9 @@ function App() {
     } else {
       document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [sidebarOpen]);
 
   const fetchFriends = async (q = "") => {
@@ -68,28 +94,32 @@ function App() {
     if (q.trim()) params.set("q", q.trim());
     params.set("include_hidden", showHidden ? "true" : "false");
     const url = `${API_URL}/friends?${params.toString()}`;
-    const response = await fetch(url);
+    const response = await authedFetch(url);
     const data = await response.json();
     setFriends(data);
   };
 
   const fetchAttributeKeys = async () => {
-    const response = await fetch(`${API_URL}/attribute-keys`);
+    const response = await authedFetch(`${API_URL}/attribute-keys`);
     const data = await response.json();
     setAllAttributeKeys(data);
   };
 
   const fetchAttributes = async (friendId) => {
-    const response = await fetch(`${API_URL}/friends/${friendId}/attributes`);
+    const response = await authedFetch(
+      `${API_URL}/friends/${friendId}/attributes`
+    );
     const data = await response.json();
     const attrObj = {};
-    data.forEach((attr) => { attrObj[attr.key] = attr.value; });
+    data.forEach((attr) => {
+      attrObj[attr.key] = attr.value;
+    });
     setAttributes(attrObj);
   };
 
   const addFriend = async (e) => {
     e.preventDefault();
-    await fetch(`${API_URL}/friends`, {
+    await authedFetch(`${API_URL}/friends`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: newFriendName }),
@@ -101,7 +131,7 @@ function App() {
   const addAttribute = async (e) => {
     e.preventDefault();
     if (!selectedFriend) return;
-    await fetch(`${API_URL}/friends/${selectedFriend.id}/attributes`, {
+    await authedFetch(`${API_URL}/friends/${selectedFriend.id}/attributes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key: newAttributeKey, value: newAttributeValue }),
@@ -114,7 +144,7 @@ function App() {
 
   const updateAttribute = async (key, value) => {
     if (!selectedFriend) return;
-    await fetch(`${API_URL}/friends/${selectedFriend.id}/attributes`, {
+    await authedFetch(`${API_URL}/friends/${selectedFriend.id}/attributes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key, value }),
@@ -124,7 +154,7 @@ function App() {
 
   const updateCoreField = async (key, value) => {
     if (!selectedFriend) return;
-    await fetch(`${API_URL}/friends/${selectedFriend.id}`, {
+    await authedFetch(`${API_URL}/friends/${selectedFriend.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [key]: value }),
@@ -133,7 +163,7 @@ function App() {
 
   const updateNotes = async (value) => {
     if (!selectedFriend) return;
-    await fetch(`${API_URL}/friends/${selectedFriend.id}`, {
+    await authedFetch(`${API_URL}/friends/${selectedFriend.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ notes: value }),
@@ -156,28 +186,32 @@ function App() {
   const updateRelationshipContext = async (value) => {
     if (!selectedFriend) return;
     setRelationshipContext(value);
-    await fetch(`${API_URL}/friends/${selectedFriend.id}`, {
+    await authedFetch(`${API_URL}/friends/${selectedFriend.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ relationship_context: value }),
     });
-    setFriends(friends.map((f) =>
-      f.id === selectedFriend.id ? { ...f, relationship_context: value } : f
-    ));
+    setFriends(
+      friends.map((f) =>
+        f.id === selectedFriend.id ? { ...f, relationship_context: value } : f
+      )
+    );
   };
 
   const toggleHidden = async () => {
     if (!selectedFriend) return;
     const newHidden = !hidden;
     setHidden(newHidden);
-    await fetch(`${API_URL}/friends/${selectedFriend.id}`, {
+    await authedFetch(`${API_URL}/friends/${selectedFriend.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ hidden: newHidden }),
     });
-    setFriends(friends.map((f) =>
-      f.id === selectedFriend.id ? { ...f, hidden: newHidden } : f
-    ));
+    setFriends(
+      friends.map((f) =>
+        f.id === selectedFriend.id ? { ...f, hidden: newHidden } : f
+      )
+    );
   };
 
   const selectFriend = (friend) => {
@@ -198,6 +232,10 @@ function App() {
   };
 
   const hiddenCount = friends.filter((f) => f.hidden).length;
+
+  if (!unlocked) {
+    return <PinGate onUnlock={() => setUnlocked(true)} />;
+  }
 
   return (
     <div className="App">
@@ -243,9 +281,11 @@ function App() {
                 <span className="friend-name">{friend.name}</span>
                 {friend.relationship_context && (
                   <span className="friend-context">
-                    {RELATIONSHIP_OPTIONS.find(
-                      (o) => o.value === friend.relationship_context
-                    )?.label}
+                    {
+                      RELATIONSHIP_OPTIONS.find(
+                        (o) => o.value === friend.relationship_context
+                      )?.label
+                    }
                   </span>
                 )}
               </div>
@@ -302,9 +342,14 @@ function App() {
                         type={field.type}
                         value={coreInfo[field.key] || ""}
                         onChange={(e) => {
-                          setCoreInfo({ ...coreInfo, [field.key]: e.target.value });
+                          setCoreInfo({
+                            ...coreInfo,
+                            [field.key]: e.target.value,
+                          });
                         }}
-                        onBlur={(e) => updateCoreField(field.key, e.target.value)}
+                        onBlur={(e) =>
+                          updateCoreField(field.key, e.target.value)
+                        }
                         placeholder={`add ${field.label.toLowerCase()}`}
                       />
                     </div>
@@ -320,7 +365,10 @@ function App() {
                         type="text"
                         value={attributes[key] || ""}
                         onChange={(e) => {
-                          setAttributes({ ...attributes, [key]: e.target.value });
+                          setAttributes({
+                            ...attributes,
+                            [key]: e.target.value,
+                          });
                         }}
                         onBlur={(e) => updateAttribute(key, e.target.value)}
                         placeholder={`Add ${key}`}

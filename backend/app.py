@@ -1,3 +1,6 @@
+import os
+from flask import request
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -9,8 +12,29 @@ from database import (
     get_all_attribute_keys, update_friend_fields, search_friends_by_name,
 )
 
+PIN = os.environ.get("FRIENDTRACKER_PIN")
+
+
 app = Flask(__name__)
-CORS(app)
+CORS(
+    app,
+    resources={r"/api/*": {"origins": "*"}},
+    allow_headers=["Content-Type", "X-FriendTracker-Pin"]
+)
+
+@app.before_request
+def require_pin_for_api():
+    if request.method == "OPTIONS":
+        return  # let CORS preflight pass
+
+    if request.path.startswith("/api/"):
+        if not PIN:
+            return ("Server PIN not configured", 500)
+
+        provided = request.headers.get("X-FriendTracker-Pin", "")
+        if provided != PIN:
+            return ("Unauthorized", 401)
+
 
 init_db()
 
